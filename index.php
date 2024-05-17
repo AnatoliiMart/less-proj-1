@@ -26,6 +26,12 @@ require_once "./functions/helpers.php"
           <li class="nav-item">
             <a class="nav-link" href="/contacts">Contacts</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/upload">Uploads</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/reviews">Reviews</a>
+          </li>
         </ul>
       </div>
     </div>
@@ -34,6 +40,7 @@ require_once "./functions/helpers.php"
     <?php
     $page = $_GET['page'] ?? 'home';
     if (!file_exists("pages/$page.php")) {
+      echo $page;
       echo "<h1>Page not found</h1>";
     } else {
       require_once "pages/$page.php";
