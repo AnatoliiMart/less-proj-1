@@ -25,10 +25,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fname = uniqid() . '_' . $name;
   }
   move_uploaded_file($file['tmp_name'], $dir . '/' . $fname);
-  resizeImage($dir . '/' . $fName, 100, true, 'uploads-img/small');
-  resizeImage($dir . '/' . $fName, 300, false, 'uploads-img/big');
+  resizeImage($dir . '/' . $fname, 100, true, 'uploads-img/small');
+  resizeImage($dir . '/' . $fname, 300, false, 'uploads-img/big');
   $_SESSION['message'] = ['File uploaded!', 'success'];
 }
+
+function addWatermark($sourceImagePath, $watermarkImagePath, $outputImagePath)
+{
+  extract(pathinfo($sourceImagePath));
+  $functionCreate = 'imagecreatefrom' . ($extension === 'jpg' ? 'jpeg' : $extension);
+  $image = $functionCreate($sourceImagePath);
+  $watermark = imagecreatefrompng($watermarkImagePath);
+
+  // Получаем размеры загруженного изображения и водяного знака
+  $imageWidth = imagesx($image);
+  $imageHeight = imagesy($image);
+  $watermarkWidth = imagesx($watermark);
+  $watermarkHeight = imagesy($watermark);
+
+  // Позиция водяного знака (нижний правый угол)
+  $destX = $imageWidth - $watermarkWidth - 10;
+  $destY = $imageHeight - $watermarkHeight - 10;
+
+  // Накладываем водяной знак на изображение
+  imagecopy($image, $watermark, $destX, $destY, 0, 0, $watermarkWidth, $watermarkHeight);
+
+  $functionSave = 'image' . ($extension === 'jpg' ? 'jpeg' : $extension);
+  if (!file_exists($outputImagePath)) {
+    mkdir($outputImagePath);
+  }
+  $functionSave($image, "$outputImagePath/$basename");
+
+  // Освобождаем память
+  imagedestroy($image);
+  imagedestroy($watermark);
+}
+
 
 function resizeImage(string $path, int $size, bool $crop, string $pathToSave)
 {
@@ -58,6 +90,7 @@ function resizeImage(string $path, int $size, bool $crop, string $pathToSave)
     mkdir($pathToSave);
   }
   $functionSave($dest, "$pathToSave/$basename");
+  addWatermark($path, "watermarks\Lovepik_com-380011847-watermark-border-red-and-yellow-china-wind-border-decoration.png", 'uploads-img/watermarked');
 }
 ?>
 <?php
@@ -74,23 +107,3 @@ if (isset($_SESSION['message'])) {
   </div>
   <button type="submit" class="btn btn-primary">Upload</button>
 </form>
-<?php
-// $files = scandir('uploads-img');
-// $files = array_diff($files, ['.', '..']);
-// foreach($files as $file){
-//     if(!is_dir("uploads-img/$file")){
-//         echo "<img src='uploads-img/$file' alt='$file' style='width: 200px'>";
-//     }
-// }
-
-// dump($files);
-
-/* $dir = opendir('uploads-img');
-while($file = readdir($dir)){
-    echo $file . '<br>';
-}
-closedir($dir); */
-// $files = glob(__DIR__ . '/../uploads-img/*{jpeg,jpg,gif,png,webp,avif}', GLOB_BRACE);
-// dump($files);
-?>
-
